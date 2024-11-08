@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Vacancy Template Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .form-field {
+            margin: 20px;
+        }
+        .form-field label {
+            display: block;
+            font-weight: bold;
+        }
+        #chatbot-pane {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f9f9f9;
+            display: none;
+            overflow: auto;
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+        #chatbot-content {
+            padding: 10px;
+            height: calc(100% - 40px);
+        }
+        #close-chatbot {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .currency-selector {
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 10px;
+        }
+        .salary-input {
+            display: inline-block;
+            vertical-align: top;
+            width: calc(100% - 100px);
+        }
+        /* Media Queries for Responsiveness */
+        @media (min-width: 768px) {
+            #chatbot-pane {
+                width: 70%;
+                left: 30%;
+            }
+            .form-field {
+                margin: 20px 40px;
+            }
+        }
+        @media (min-width: 1024px) {
+            #chatbot-pane {
+                width: 50%;
+                left: 50%;
+            }
+            .form-field {
+                margin: 20px 60px;
+            }
+        }
+        @media (min-width: 1440px) {
+            #chatbot-pane {
+                width: 40%;
+                left: 60%;
+            }
+            .form-field {
+                margin: 20px 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Job Vacancy Template Form</h1>
+
+    <!-- Organisation Name Field -->
+    <div class="form-field">
+        <label for="organisation-name">Organisation Name</label>
+        <select id="organisation-name">
+            <!-- [Options as before] -->
+        </select>
+    </div>
+
+    <div class="form-field">
+        <label for="job-title">Job Title</label>
+        <input type="text" id="job-title" placeholder="Record your job title here" />
+        <button id="match-job-code">Match job title to Job code</button>
+    </div>
+
+    <div class="form-field">
+        <label for="job-code">Job Code Picker</label>
+        <select id="job-code">
+            <!-- [Options as before] -->
+        </select>
+    </div>
+
+    <div class="form-field">
+        <label for="job-description">Job Description</label>
+        <textarea id="job-description" rows="10" placeholder="Job description will appear here"></textarea>
+        <button id="generate-job-description">Generate my Job Description</button>
+    </div>
+
+    <div class="form-field">
+        <label for="salary">Salary</label>
+        <div class="currency-selector">
+            <select id="currency">
+                <!-- [Options as before] -->
+            </select>
+        </div>
+        <div class="salary-input">
+            <input type="number" id="salary" step="0.01" placeholder="Enter salary amount" />
+        </div>
+    </div>
+
+    <!-- Chatbot Pane -->
+    <div id="chatbot-pane">
+        <button id="close-chatbot" onclick="closeChatbot()">Close</button>
+        <div id="chatbot-content">
+            <!-- Chatbot content will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('match-job-code').addEventListener('click', function() {
+            const jobTitle = document.getElementById('job-title').value;
+            const orgName = document.getElementById('organisation-name').value;
+            if (jobTitle.trim() === '') {
+                alert('Please enter a Job Title.');
+                return;
+            }
+            openChatbot(jobTitle, orgName);
+        });
+
+        document.getElementById('generate-job-description').addEventListener('click', function() {
+            const jobTitle = document.getElementById('job-title').value;
+            const orgName = document.getElementById('organisation-name').value;
+            if (jobTitle.trim() === '') {
+                alert('Please enter a Job Title.');
+                return;
+            }
+            generateJobDescription(jobTitle, orgName);
+        });
+
+        function openChatbot(jobTitle, orgName) {
+            // Open the chatbot pane
+            document.getElementById('chatbot-pane').style.display = 'block';
+            // Construct the chatbot iframe URL with the required parameters
+            const chatbotUrl = `https://api.mindstudio.ai/embed/chatbot?workerId=4fc308c5-0c03-4232-8a67-2bb3ef8abaf8&job_title=${encodeURIComponent(jobTitle)}&org_name=${encodeURIComponent(orgName)}`;
+            // Load the chatbot iframe
+            document.getElementById('chatbot-content').innerHTML = `<iframe src="${chatbotUrl}" width="100%" height="100%" frameborder="0"></iframe>`;
+        }
+
+        function closeChatbot() {
+            document.getElementById('chatbot-pane').style.display = 'none';
+            document.getElementById('chatbot-content').innerHTML = '';
+        }
+
+        async function generateJobDescription(jobTitle, orgName) {
+            try {
+                const response = await fetch(
+                    'https://api.mindstudio.ai/developer/v2/workers/run',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer YOUR_API_KEY',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            workerId: '4fc308c5-0c03-4232-8a67-2bb3ef8abaf8',
+                            variables: { 
+                                job_title: jobTitle,
+                                org_name: orgName
+                            }
+                        }),
+                    }
+                );
+                const data = await response.json();
+                // Assuming the API returns the job description in data.output
+                document.getElementById('job-description').value = data.output || 'No description available.';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while generating the job description.');
+            }
+        }
+    </script>
+</body>
+</html>
